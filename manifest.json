@@ -1,0 +1,26 @@
+﻿{
+    "Name": "MarvalBaltic.Plugins.ShowLocationImage",
+    "Organisation": "MarvalBaltic",
+    "DisplayName": "Show Location Image",
+    "Icon": "img/location_image_16.png",
+    "Version": "1.1.0",
+    "SupportedVersions": [
+        "14.4.2",
+        "14.4.1",
+        "14.4.0",
+        "14.3.4",
+        "14.3.1"
+    ],
+    "Pages": [
+        "Request.aspx",
+        "ConfigurationItem.aspx"
+    ],
+    "HtmlImportFile": "location_image.html",
+    "TagName": "marval-baltic-plugins-show-location-image",
+  "GlobalSettings": [
+    "Location Element Selector Query",
+    "MSM WSE Address",
+    "MSM WSE User Name",
+    "MSM WSE Password"
+  ]
+}

@@ -1,0 +1,208 @@
+﻿<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+<script src="Template.js"></script>
+<script>
+    (function () {
+
+        var MarvalSoftware = window.top.MarvalSoftware;
+        var $ = window.top.$;
+
+        MarvalSoftware.Plugins.define("marval-baltic-plugins-show-location-image",
+            {
+                _pluginPath: null,
+                _pluginId: "marval-baltic-plugins-show-location-image",
+                _quickMenuItemImageFileName: "location_image_32.png",
+                _pluginIFrameId: "marval-baltic-plugins-show-location-image-ifrm",
+                _pluginIFrame: null,
+                _pluginWindowTitle: "Location Image",
+                _pluginWindowSize: {
+                    width: 0,
+                    height: 0,
+                    minWidth: 200,
+                    minHeight: 100,
+                    maxWidth: 800,
+                    maxHeight: 600,
+                    extraWidth: 2,
+                    extraHeight: 28,
+                    resize: false
+                },
+                _pluginHandlerRequest: null,
+
+                _getPluginPath: function () {
+                    return this.attributes["data-pluginpath"].value;
+                },
+
+                init: function () {
+                    this._getLocationFieldSelector(
+                        this,
+                        this._setLocationFieldEvent
+                    );
+                },
+
+                _getLocationFieldSelector: function (plugin, setLocationFieldEvent) {
+                    if (this._pluginHandlerRequest) {
+                        this._pluginHandlerRequest.abort();
+                        this._pluginHandlerRequest = null;
+                    }
+                    this._pluginHandlerRequest = $.ajax({
+                        type: "GET",
+                        url: this._getPluginPath() + "handler/ShowLocationImageHandler.ashx",
+                        contentType: "application/json; charset=utf-8",
+                        dataType: "json",
+                        success: function (result) {
+                            setLocationFieldEvent(plugin, result);
+                        }.bind(this),
+                        error: function (xhr, ajaxOptions, thrownError) {
+                            if (xhr.status > 0) this._showErrorMessage("Location Image Link Request Handler Error!\n" + xhr.status + '\n' + thrownError);
+                        }.bind(this)
+                    });
+                },
+
+                _setLocationFieldEvent: function (plugin, locationFieldSelector) {
+                    if (locationFieldSelector && locationFieldSelector.length > 0 && $(locationFieldSelector).length) {
+                        var locationIDElement = window.top.document.getElementById($(locationFieldSelector)[0].id + '_selectedValue');
+                        if (locationIDElement) {
+                            if (locationIDElement.addEventListener) {
+                                locationIDElement.addEventListener("change", function (e) {
+                                    plugin._getLocationImageLink(this.value);
+                                }
+                                    , false);
+                            }
+                            else if (locationIDElement.attachEvent) {
+                                locationIDElement.attachEvent("onchange", function (e) {
+                                    plugin._getLocationImageLink(this.value);
+                                });
+                            }
+                            plugin._getLocationImageLink(locationIDElement.value);
+                        }
+                    }
+                },
+
+                _getLocationImageLink: function (locationId) {
+                    if (locationId && locationId > 0) {
+                        if (this._pluginHandlerRequest) {
+                            this._pluginHandlerRequest.abort();
+                            this._pluginHandlerRequest = null;
+                        }
+                        var plugin = this;
+                        this._pluginHandlerRequest = $.ajax({
+                            type: "GET",
+                            url: plugin._getPluginPath() + "handler/ShowLocationImageHandler.ashx?LocationID=" + locationId,
+                            contentType: "application/json; charset=utf-8",
+                            dataType: "json",
+                            success: function (result) {
+                                plugin._setQuickMenuIcon(result);
+                            }.bind(plugin),
+                            error: function (xhr, ajaxOptions, thrownError) {
+                                if (xhr.status > 0) this._showErrorMessage("Location Image Link Request Handler Error!\n" + xhr.status + '\n' + thrownError);
+                            }.bind(plugin)
+                        });
+                    }
+                    else this._setQuickMenuIcon(null);
+                },
+
+                _setQuickMenuIcon: function (imageUrl) {
+                    var quickMenu = MarvalSoftware.UI.Controls.ScriptManager.getInstance().getControl(window.top.document.querySelector(".quickMenu").id);
+                    if (!quickMenu) return;
+                    var quickMenuItem = quickMenu.getMenuItem(this._pluginId);
+                    var quickMenuItemCssClassName = this._pluginId + "-quick-menu-item";
+                    if (!$(window.top.document.body).find("." + quickMenuItemCssClassName).length) {
+                        var styleElement = window.top.document.createElement("style");
+                        window.top.document.body.appendChild(styleElement);
+                        styleElement.sheet.insertRule("." + quickMenuItemCssClassName + " { background-image: url(" + this._getPluginPath() + 'img/' + this._quickMenuItemImageFileName + "); }", 0);
+                    }
+                    if (!quickMenuItem && imageUrl && imageUrl.length > 0) {
+                        quickMenu.addMenuItem({
+                            Identifier: this._pluginId,
+                            Label: this._pluginWindowTitle,
+                            HRef: "javascript:void(0);",
+                            CssClass: quickMenuItemCssClassName
+                        });
+                        quickMenu.onMenuItemClicked.subscribe(function (sender, e) {
+                            if (e.menuItem.getIdentifier() == this._pluginId) {
+                                this._popup();
+                            }
+                        }, this);
+                    }
+                    if (imageUrl && imageUrl.length > 0) {
+                        this._pluginIFrame = $(document.body).find('#' + this._pluginIFrameId);
+                        if (!this._pluginIFrame.length) this._pluginIFrame = $(document.body).append($('<iframe id="' + this._pluginIFrameId + '" style="display:none;"></iframe>')).find('iframe');
+                        this._pluginIFrame.attr('src', imageUrl);
+                        if (quickMenuItem && !quickMenuItem.isVisible()) quickMenuItem.setVisibility(true);
+                    }
+                    else {
+                        if (quickMenuItem) quickMenuItem.setVisibility(false);
+                        this._pluginIFrame = null;
+                    }
+                },
+
+                _showErrorMessage: function (errorMessage) {
+                    MarvalSoftware.UI.MessageBox.show(
+                        "Show Location Image Plugin Error",
+                        errorMessage,
+                        MarvalSoftware.UI.MessageBox.Types.ERROR,
+                        null,
+                        null,
+                        400
+                    );
+                },
+
+                _popup: function () {
+                    // do nothing if overlay window is open.
+                    if (this._pluginWindow && this._pluginWindow.isVisible()) return;
+                    // we need to change overlay window size according to picture size
+                    // could not find how to dispose previous overlay windows. removing them manually.
+                    this._clearOverlayWindows(this._pluginWindowTitle);
+                    var img = this._pluginIFrame.contents().find("img")[0];
+                    if (img) {
+                        this._setPluginWindowSize(img.naturalWidth, img.naturalHeight);
+                        // could not find how to change Marval DOM Window size, so creating a new one everytime
+                        this._pluginWindow = new MarvalSoftware.UI.Window({
+                            title: this._pluginWindowTitle,
+                            height: this._pluginWindowSize.height,
+                            width: this._pluginWindowSize.width,
+                            minHeight: this._pluginWindowSize.minHeight,
+                            minWidth: this._pluginWindowSize.minWidth,
+                            isResizable: false,
+                            isMaximizable: false,
+                            bodyElement: this
+                        });
+                        this.innerHTML = '';
+                        var clonedImage = img.cloneNode(true);
+                        if(this._pluginWindowSize.resize) clonedImage.style.width = '100%';
+                        this.appendChild(clonedImage);
+                        if (!this._pluginWindow.isVisible()) { this._pluginWindow.centerToViewport(); }
+                        this._pluginWindow.show();
+                    }
+                },
+
+                _setPluginWindowSize: function (newWidth, newHeight) {
+                    if (!newWidth) newWidth = 0;
+                    if (!newHeight) newHeight = 0;
+                    this._pluginWindowSize.width = newWidth;
+                    this._pluginWindowSize.height = newHeight;
+                    this._pluginWindowSize.resize = false;
+                    if (this._pluginWindowSize.width < this._pluginWindowSize.minWidth) this._pluginWindowSize.width = this._pluginWindowSize.minWidth;
+                    if (this._pluginWindowSize.height < this._pluginWindowSize.minHeight) this._pluginWindowSize.height = this._pluginWindowSize.minHeight;
+                    if (this._pluginWindowSize.width > this._pluginWindowSize.maxWidth) {
+                        this._pluginWindowSize.height = Math.round(this._pluginWindowSize.height * this._pluginWindowSize.maxWidth / this._pluginWindowSize.width);
+                        this._pluginWindowSize.width = this._pluginWindowSize.maxWidth;
+                        this._pluginWindowSize.resize = true;
+                    }
+                    if (this._pluginWindowSize.height > this._pluginWindowSize.maxHeight) {
+                        this._pluginWindowSize.width = Math.round(this._pluginWindowSize.width * this._pluginWindowSize.maxHeight / this._pluginWindowSize.height);
+                        this._pluginWindowSize.height = this._pluginWindowSize.maxHeight;
+                        this._pluginWindowSize.resize = true;
+                    }
+                    this._pluginWindowSize.width += this._pluginWindowSize.extraWidth;
+                    this._pluginWindowSize.height += this._pluginWindowSize.extraHeight;
+                },
+
+                _clearOverlayWindows: function (windowTitle) {
+                    this._pluginWindow = null;
+                    $('.overlay.window > .content > .header').each(function () { if ($(this).text() == windowTitle) { $(this).parent().parent().remove(); } });
+                }
+
+            });
+
+    })();
+</script>
