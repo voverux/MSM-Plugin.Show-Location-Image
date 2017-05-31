@@ -12,9 +12,9 @@ Please feel free to contact Marval Baltic if you would like to see it working.
 
 ## Compatible Versions
 
-| Plugin  | MSM                                    |
-|---------|----------------------------------------|
-| 1.1.0   | 14.3.1, 14.3.4, 14.4.0, 14.4.1, 14.4.2 |
+| Plugin  | MSM             |
+|---------|-----------------|
+| 1.2.0   | 14.3.1 - 14.5.1 |
 
 ## Installation
 

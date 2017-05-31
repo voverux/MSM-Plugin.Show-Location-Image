@@ -3,8 +3,11 @@
     "Organisation": "MarvalBaltic",
     "DisplayName": "Show Location Image",
     "Icon": "img/location_image_16.png",
-    "Version": "1.1.0",
+    "Version": "1.2.0",
     "SupportedVersions": [
+        "14.5.1",
+        "14.5.0",
+        "14.4.3",
         "14.4.2",
         "14.4.1",
         "14.4.0",

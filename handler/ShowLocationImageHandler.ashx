@@ -15,7 +15,7 @@ public class ShowLocationImageHandler : PluginHandler
 {
     public override bool IsReusable { get { return false; } }
 
-    private string mSMBaseUrl { get { return string.Format("{0}://{1}{2}", HttpContext.Current.Request.Url.Scheme, HttpContext.Current.Request.Url.Host, MarvalSoftware.UI.WebUI.ServiceDesk.WebHelper.ApplicationPath); } }
+    private string mSMBaseUrl { get { return string.Format("{0}://{1}{2}{3}", HttpContext.Current.Request.Url.Scheme, HttpContext.Current.Request.Url.Host, HttpContext.Current.Request.Url.Port == 80 || HttpContext.Current.Request.Url.Port == 443 ? "" : string.Format(":{0}",HttpContext.Current.Request.Url.Port) , MarvalSoftware.UI.WebUI.ServiceDesk.WebHelper.ApplicationPath); } }
     private string mSMWSEAdr { get { return this.GlobalSettings["MSM WSE Address"]; } }
     private string mSMWSEEncUsr { get { return this.GlobalSettings["MSM WSE User Name"]; } }
     private string mSMWSEEncPwd { get { return this.GlobalSettings["MSM WSE Password"]; } }
