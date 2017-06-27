@@ -3,8 +3,9 @@
     "Organisation": "MarvalBaltic",
     "DisplayName": "Show Location Image",
     "Icon": "img/location_image_16.png",
-    "Version": "1.2.0",
+    "Version": "1.3.0",
     "SupportedVersions": [
+        "14.6.0",
         "14.5.1",
         "14.5.0",
         "14.4.3",
@@ -16,7 +17,8 @@
     ],
     "Pages": [
         "Request.aspx",
-        "ConfigurationItem.aspx"
+        "ConfigurationItem.aspx",
+        "OrganisationalStructure.aspx"
     ],
     "HtmlImportFile": "location_image.html",
     "TagName": "marval-baltic-plugins-show-location-image",
