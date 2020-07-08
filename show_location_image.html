@@ -26,57 +26,30 @@
                     resize: false
                 },
                 _pluginHandlerRequest: null,
-
                 _getPluginPath: function () {
                     return this.attributes["data-pluginpath"].value;
                 },
-
                 init: function () {
-                    this._getLocationFieldSelector(
-                        this,
-                        this._setLocationFieldEvent
-                    );
+                    this._setLocationFieldEvent(this);
                 },
-
-                _getLocationFieldSelector: function (plugin, setLocationFieldEvent) {
-                    if (this._pluginHandlerRequest) {
-                        this._pluginHandlerRequest.abort();
-                        this._pluginHandlerRequest = null;
-                    }
-                    this._pluginHandlerRequest = $.ajax({
-                        type: "GET",
-                        url: this._getPluginPath() + "handler/ShowLocationImageHandler.ashx",
-                        contentType: "application/json; charset=utf-8",
-                        dataType: "json",
-                        success: function (result) {
-                            setLocationFieldEvent(plugin, result);
-                        }.bind(this),
-                        error: function (xhr, ajaxOptions, thrownError) {
-                            if (xhr.status > 0) this._showErrorMessage("Location Image Link Request Handler Error!\n" + xhr.status + '\n' + thrownError);
-                        }.bind(this)
-                    });
+                _setLocationFieldEvent: function (plugin) {
+					if($(".autocomplete.location").length == 0) return;
+					var locationIDElement = window.top.document.getElementById($(".autocomplete.location")[0].id + '_selectedValue');
+					if (locationIDElement) {
+						if (locationIDElement.addEventListener) {
+							locationIDElement.addEventListener("change", function (e) {
+								plugin._getLocationImageLink(this.value);
+							}
+								, false);
+						}
+						else if (locationIDElement.attachEvent) {
+							locationIDElement.attachEvent("onchange", function (e) {
+								plugin._getLocationImageLink(this.value);
+							});
+						}
+						plugin._getLocationImageLink(locationIDElement.value);
+					}
                 },
-
-                _setLocationFieldEvent: function (plugin, locationFieldSelector) {
-                    if (locationFieldSelector && locationFieldSelector.length > 0 && $(locationFieldSelector).length) {
-                        var locationIDElement = window.top.document.getElementById($(locationFieldSelector)[0].id + '_selectedValue');
-                        if (locationIDElement) {
-                            if (locationIDElement.addEventListener) {
-                                locationIDElement.addEventListener("change", function (e) {
-                                    plugin._getLocationImageLink(this.value);
-                                }
-                                    , false);
-                            }
-                            else if (locationIDElement.attachEvent) {
-                                locationIDElement.attachEvent("onchange", function (e) {
-                                    plugin._getLocationImageLink(this.value);
-                                });
-                            }
-                            plugin._getLocationImageLink(locationIDElement.value);
-                        }
-                    }
-                },
-
                 _getLocationImageLink: function (locationId) {
                     if (locationId && locationId > 0) {
                         if (this._pluginHandlerRequest) {
@@ -87,8 +60,8 @@
                         this._pluginHandlerRequest = $.ajax({
                             type: "GET",
                             url: plugin._getPluginPath() + "handler/ShowLocationImageHandler.ashx?LocationID=" + locationId,
-                            contentType: "application/json; charset=utf-8",
-                            dataType: "json",
+                            contentType: "text/html; charset=utf-8",
+                            dataType: "text",
                             success: function (result) {
                                 plugin._setQuickMenuIcon(result);
                             }.bind(plugin),
@@ -104,11 +77,13 @@
                     var quickMenu = MarvalSoftware.UI.Controls.ScriptManager.getInstance().getControl(window.top.document.querySelector(".quickMenu").id);
                     if (!quickMenu) return;
                     var quickMenuItem = quickMenu.getMenuItem(this._pluginId);
-                    var quickMenuItemCssClassName = this._pluginId + "-quick-menu-item";
+                    var quickMenuItemCssClassName = this._pluginId + "-qmitem";
                     if (!$(window.top.document.body).find("." + quickMenuItemCssClassName).length) {
-                        var styleElement = window.top.document.createElement("style");
-                        window.top.document.body.appendChild(styleElement);
-                        styleElement.sheet.insertRule("." + quickMenuItemCssClassName + " { background-image: url(" + this._getPluginPath() + 'img/' + this._quickMenuItemImageFileName + "); }", 0);
+						var styleElement = window.top.document.createElement("style");
+						styleElement.appendChild(window.top.document.createTextNode(""));
+						window.top.document.head.appendChild(styleElement);
+						var ss_rule = '.' + quickMenuItemCssClassName + '{background-image: url("' + this._getPluginPath() + 'img/' + this._quickMenuItemImageFileName + '");}';
+                        styleElement.sheet.insertRule(ss_rule, 0);
                     }
                     if (!quickMenuItem && imageUrl && imageUrl.length > 0) {
                         quickMenu.addMenuItem({
